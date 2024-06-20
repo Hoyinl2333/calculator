@@ -5,7 +5,7 @@
 #include<iostream>
 #include<cmath>
 
-const unsigned int Number::DIVISION_PRECISION = 20;//设置到除不尽保留小数点后20位
+const unsigned int Number::DIVISION_PRECISION = 20;//设置到除不尽保留小数点位数（精度）
 
 Number::Number() :LinkList(),
 integerLength(0), decimalLength(0), isNegative(0)
@@ -119,6 +119,16 @@ void Number::simply()
 		tail = current;
 	}
 
+}
+
+Number Number::abs(const Number &number)
+{
+    Number result = number;
+    if(number.isNegative)
+    {
+        result.isNegative = false;
+    }
+    return result;
 }
 
 void Number::setPrecision(const int& p)
@@ -315,6 +325,10 @@ bool operator>(const Number& number1, const Number& number2)
 	n1.simply();
 	n2.simply();
 
+    if(n1.isNegative^n2.isNegative)
+    {
+        return n1.isNegative?false:true;//符号不同
+    }
 	if (n1.integerLength > n2.integerLength)//整数部分长度比较
 	{
 		return true;
@@ -350,10 +364,19 @@ bool operator>(const Number& number1, const Number& number2)
 Number operator+(const Number& number1, const Number& number2)
 {
 
-	if (number1.head == NULL || number2.head == NULL)
+	if (number1.head == NULL && number2.head == NULL)//传入两个空值
 	{
 		return Number();
 	}
+	if (number1.head != NULL && number2.head == NULL)//number1非空，number2空
+	{
+		return number1;
+	}
+	if (number1.head == NULL && number2.head != NULL)//number1空，number2非空
+	{
+		return number2;
+	}
+
 
 	//根据符号判断是否真的为加法
 	if (number1.isNegative ^ number2.isNegative)
@@ -447,9 +470,17 @@ Number operator+(const Number& number1, const Number& number2)
 
 Number operator-(const Number& number1, const Number& number2)
 {
-	if (number1.head == NULL || number2.head == NULL)
+	if (number1.head == NULL && number2.head == NULL)//传入两个空值
 	{
 		return Number();
+	}
+	if (number1.head != NULL && number2.head == NULL)//number1非空，number2空
+	{
+		return number1;
+	}
+	if (number1.head == NULL && number2.head != NULL)//number1空，number2非空
+	{
+		return number2;
 	}
 	//调整真实情况
 	if (number1.isNegative ^ number2.isNegative)
@@ -606,12 +637,19 @@ Number operator*(const Number& number, Node* node)
 
 Number operator*(const Number& number1, const Number& number2)
 {
-	if (number1.head == NULL || number2.head == NULL)
+	if (number1.head == NULL && number2.head == NULL)//传入两个空值
 	{
 		return Number();
 	}
+	if (number1.head != NULL && number2.head == NULL)//number1非空，number2空
+	{
+		return number1;
+	}
+	if (number1.head == NULL && number2.head != NULL)//number1空，number2非空
+	{
+		return number2;
+	}
 	Number result, temp;
-	result.isNegative = (number1.isNegative ^ number2.isNegative);
 	result.isDouble = (number1.isDouble || number2.isDouble);
 	Node* t = number2.tail;
 
@@ -650,6 +688,7 @@ Number operator*(const Number& number1, const Number& number2)
 		result.isDouble = true;
 	}
 	//后处理
+	result.isNegative = (number1.isNegative ^ number2.isNegative);
 	result.simply();
 	result.decimalLength = result.countDecLen();
 	result.integerLength = result.countIntLen();
@@ -659,9 +698,17 @@ Number operator*(const Number& number1, const Number& number2)
 
 Number operator/(const Number& number1, const Number& number2)
 {
-	if (number1.head == NULL || number2.head == NULL)
+	if (number1.head == NULL && number2.head == NULL)//传入两个空值
 	{
 		return Number();
+	}
+	if (number1.head != NULL && number2.head == NULL)//number1非空，number2空
+	{
+		return number1;
+	}
+	if (number1.head == NULL && number2.head != NULL)//number1空，number2非空
+	{
+		return number2;
 	}
 	//预处理部分：
 	//除数是否零
@@ -890,7 +937,7 @@ Number operator/(const Number& number1, const Number& number2)
 	}
 
 	//后处理：
-
+	result.isNegative = (number1.isNegative ^ number2.isNegative);
 	result.simply();
 	result.integerLength = result.countIntLen();
 	result.decimalLength = result.countDecLen();

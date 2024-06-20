@@ -67,12 +67,16 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
         {
             ui->lineEdit_main->setText("-");
         }
-        if(preBtn=="+"||preBtn=="-"||preBtn=="×"||preBtn=="÷")
+        if(preBtn=="+"||preBtn=="-"||preBtn=="×"||preBtn=="÷")//表明开始输入右操作数
         {
             ui->lineEdit_main->clear();
         }
-
-        if (name == ".")
+        if (preBtn == "=")//上一次计算结束
+        {
+            ui->lineEdit_vice->insert(ui->lineEdit_main->text());
+            ui->lineEdit_main->clear();
+        }
+        if (name == ".")//小数点输入
         {
             QString text = ui->lineEdit_main->text();
             bool hasDot = false;
@@ -88,7 +92,7 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
                 ui->lineEdit_main->insert(name);
             }
         }
-        else
+        else//非小数点输入
         {
             ui->lineEdit_main->insert(name);
         }
@@ -150,11 +154,8 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
         vec[map.value("equal")] = "=";
         //计算大数，
         m_num1 = Number(vec[map.value("number1")].toString().toStdString());
-        qDebug()<<"m_num1 = "+m_num1.toString();
 
         m_num2 = Number(vec[map.value("number2")].toString().toStdString());
-        qDebug()<<"m_num2 = "+m_num2.toString();
-
 
 
         if(vec[map.value("operator")]=="+")
@@ -171,22 +172,22 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
         }
         if(vec[map.value("operator")]=="÷")
         {
-            if(val.toDouble()!=0)//除数不为0
+            if(Number::abs(m_num2)>Number("0"))//除数不为0
             {
                 m_numResult = m_num1 / m_num2;
             }
+            else
+            {
+                ui->lineEdit_main->setText("divide zero error!");
+                do_divideZero();
+                return;
+            }
         }
-        //除数是0的在文本框的显示
-        if(abs(val.toDouble())>=0)
-        {
-            qDebug()<<"m_numResult = "+m_numResult.toString();
-            vec[map.value("result")] =QString::fromStdString(m_numResult.toString());
-            ui->lineEdit_main->setText(vec[map.value("result")].toString());
-        }
-        else
-        {
-            ui->lineEdit_main->setText("divide zero error!");
-        }
+
+
+        vec[map.value("result")] =QString::fromStdString(m_numResult.toString());
+        ui->lineEdit_main->setText(vec[map.value("result")].toString());
+
     }
     else if(name=="x²")
     {
@@ -205,13 +206,12 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
     }
     else if(name=="1/x")
     {
-        if(val!="0")
+        if(val!="0")//x不为0
         {
             m_num1 = 1;
             m_num2 = Number(val.toStdString());
             m_numResult = m_num1/m_num2;
             QString result = QString::fromStdString(m_numResult.toString());
-            qDebug()<<result;
             if(vec[map.value("operator")].isNull())
             {
                 vec[map.value("number1")] = result;
@@ -225,6 +225,8 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
         else
         {
             ui->lineEdit_main->setText("divide zero error!");
+            do_divideZero();
+            return;
         }
     }
     else if(name=="%")
@@ -234,7 +236,6 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
         {
             result = "0";
             vec[map.value("number1")] = result;
-            qDebug()<<vec[map.value("number1")].toString();
         }
         else
         {
@@ -242,7 +243,6 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
             m_num2 = Number(val.toStdString())/100;
             m_numResult = m_num1 * m_num2;
             result = QString::fromStdString(m_numResult.toString());
-            qDebug()<<result;
             vec[map.value("number2")] = result;
         }
         ui->lineEdit_main->setText(result);
@@ -293,19 +293,20 @@ void Widget::onButtonGroupClicked(QAbstractButton *btn)
         {
             ui->lineEdit_vice->insert(vec[i].toString());
         }
+    }
 
-    }
-    if(ui->lineEdit_main->text()=="divide zero error!")//当前主文本框的内容为“divide zero error!”
-    {
-        auto btnList = findChildren<QPushButton*>();
-        for (auto button :btnList)
-        {
-            if(button->text()!="C")
-            {
-                button->setEnabled(false); // 禁用每个按钮
-            }
-        }
-    }
     preBtn  = name;
     qDebug()<<preBtn;
+}
+
+void Widget::do_divideZero()
+{
+    auto btnList = findChildren<QPushButton*>();
+    for (auto button :btnList)
+    {
+        if(button->text()!="C")
+        {
+            button->setEnabled(false); // 禁用每个按钮，除“C"
+        }
+    }
 }

@@ -38,5 +38,7 @@ private:
     Number m_num2;//右操作数
     Number m_numResult;//计算结果
 
+    void do_divideZero();//除数是0时的操作
+
 };
 #endif // WIDGET_H

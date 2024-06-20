@@ -40,6 +40,9 @@ public:
 	void setIsNegative(bool is_negative);//设置数是否为负数
 
 	void simply();//简化数字，例：“000.0300”化简为“0.03”
+
+    static Number abs(const Number& number);
+
 	void setPrecision(const int& p);//保留有效数字
 
 	std::string toString()const;//将数从链表转化为std::string类型
